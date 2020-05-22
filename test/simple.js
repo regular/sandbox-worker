@@ -5,7 +5,7 @@ test('Can call function', t=>{
   t.plan(6)
 
   const {call, end} = sandboxWorker(`
-    function ([a, b]) {
+    module.exports = function ([a, b]) {
       return a + b
     }
   `, onEnd)
@@ -31,7 +31,7 @@ test('function return value is JSON', t=>{
   t.plan(6)
 
   const {call, end} = sandboxWorker(`
-    function ([a, b]) {
+    module.exports = function ([a, b]) {
       return {a, b}
     }
   `, onEnd)
@@ -58,7 +58,7 @@ test('Syntax error in args are handled gracefully', t=>{
   t.plan(7)
 
   const {call, end} = sandboxWorker(`
-    function ([a, b]) {
+    module.exports = function ([a, b]) {
       return a + b
     }
   `, onEnd)

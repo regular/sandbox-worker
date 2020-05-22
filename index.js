@@ -2,17 +2,44 @@ const {isMainThread, Worker, parentPort, workerData} = require('worker_threads')
 const debug = require('debug')('sandbox-worker')
 
 if (!isMainThread) {
-  const {engine, code} = workerData
-  if (engine !== 'duktape' && engine !== 'quickjs') {
-    throw Error('Engine must be duktape or quickjs')
-  }
-  const Engine = require('wasm-jseval')[`${engine}Eval`].getInstance
-  const promisedEngine = Engine()
+  const {code} = workerData
 
-  function makeFunction(code, cb) {
-    promisedEngine.then( engine => {
+  const promisedEngine = require('quickjs-emscripten').getQuickJS()
+  let vm
+
+  function deinit() {
+    if (vm) vm.dispose()
+    vm = null
+  }
+
+  function init(code, cb) {
+    promisedEngine.then( qjs => {
+      vm = qjs.createVm()
+      const result = vm.evalCode(`module = {}; ${code}`)
+      if (result.error) {
+        const e = new Error(vm.dump(result.error))
+        result.error.dispose()
+        return cb(e)
+      }
+      result.value.dispose()
+
       const f = function(args) {
-        return engine.rawEval(`(${code})(${args})`)
+        const result = vm.evalCode(`module.exports(${args})`)
+        // unwrapResult will through a string otherwise
+        /*
+        if (result.error) {
+          const s = vm.dump(result.error)
+          console.error(`[${typeof s}] ${JSON.stringify(s)}`)
+          if (typeof s == 'string') {
+            result.error.dispose()
+            throw new Error(s)
+          }
+        }
+        */ 
+        const value = vm.unwrapResult(result)
+        const s = toJSON(vm, value)
+        value.dispose()
+        return s
       }
       cb(null, f)
     }).catch( err =>{
@@ -20,19 +47,20 @@ if (!isMainThread) {
     })
   }
 
-  makeFunction(code, (err, f) =>{
+  init(code, (err, f) =>{
     if (err) throw err
     parentPort.on('message', ([verb, args]) => {
       if (verb == 'end') {
+        deinit()
         return process.exit(0)
       }
       try {
         const result = f(args)
-        console.log(`f result: ${result}`)
+        console.log(`f result: ${result}, [${typeof result}]`)
         parentPort.postMessage([null, result])
       } catch(err) {
         console.error(`error in f: ${err.message}`)
-        parentPort.postMessage([err])
+        parentPort.postMessage([{name: err.name, message: err.message}])
       }
     })
   })
@@ -78,6 +106,10 @@ if (!isMainThread) {
 }
 
 // -- util
+
+function toJSON(vm, handle) {
+  return vm.ffi.QTS_Dump(vm.ctx.value, handle.value) 
+}
 
 function makeWorker(engine, code, onDone, onEnd) {
   const worker = new Worker(__filename, {
