@@ -1,17 +1,17 @@
 {
   "name": "sandbox-worker",
   "version": "1.0.0",
-  "description": "securely run untrusted JS functions in a worker",
+  "description": "securely run untrusted JS functions in an isolated quickjs runtime inside a worker thread",
   "main": "index.js",
   "scripts": {
     "test": "tape test/**"
   },
-  "keywords": [],
+  "keywords": ["sandbox", "quickjs", "isolate" ],
   "author": "Jan Bölsche <jan@lagomorph.de> (https://regular.codes/)",
   "license": "MIT",
   "dependencies": {
     "debug": "^4.1.1",
-    "wasm-jseval": "^0.1.2"
+    "quickjs-emscripten": "^0.2.0"
   },
   "devDependencies": {
     "tape": "^5.0.0"

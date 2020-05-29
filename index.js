@@ -18,10 +18,11 @@ if (!isMainThread) {
       debug('done!')
       const addTask = function(code) {
         debug('adding task ..')
+        //console.log('adding Task', code)
         let vm = qjs.createVm()
-        const result = vm.evalCode(`module = {}; ${code}`)
+        const result = vm.evalCode(`const module = {}; ${code}`)
         if (result.error) {
-          const e = new Error(vm.dump(result.error))
+          const e = vm.dump(result.error)
           debug(`Failed: ${e.message}`)
           result.error.dispose()
           vm.dispose()
@@ -31,7 +32,7 @@ if (!isMainThread) {
         debug('success')
 
         const f = function(args) {
-          debug('task called')
+          debug(`task called with args: "${args}"`)
           const result = vm.evalCode(`module.exports(${args})`)
           const value = vm.unwrapResult(result)
           debug('success')
@@ -86,10 +87,10 @@ if (!isMainThread) {
           const task = tasks[msg.index]
           if (!task) throw new Error(`invalid task index ${msg.index}`)
           const result = task(msg.args || '[]')
-          console.log(`task result: ${result}, [${typeof result}]`)
+          //console.log(`task result: ${result}, [${typeof result}]`)
           parentPort.postMessage([null, result])
         } catch(err) {
-          console.error(`error in f: ${err.message}`)
+          //console.error(`error in f: ${err.message}`)
           parentPort.postMessage([{name: err.name, message: err.message}])
         }
       }
@@ -118,15 +119,15 @@ module.exports = function (opts, cb) {
     debug(`onEnd ${err}`)
     while(pending.length) onDone(err)
     if (err == true) {
-      console.log('worker ended')
+      //console.log('worker ended')
     } else {
-      console.error(`worker ended, err: ${err.message}`)
+      console.error(`worker ended, err: ${JSON.stringify(err.message)}`)
     }
     cb(err)
   }
 
   function call(index, args, cb) {
-    debug(`sending call ${index}`)
+    debug(`sending call ${index}, args: ${args}`)
     pending.push(cb)
     worker.postMessage({verb: 'call', index, args})
   }
@@ -201,12 +202,13 @@ function makeWorker(opts, onDone, onEnd) {
   let _err = null
   worker.on('error', err =>{
     console.error(`worker error: ${err.message}`)
+    console.error(`       stack: ${err.stack}`)
     _err = err
     onEnd(err)
   })
   worker.on('message', msg =>{
     const [err, result] = msg
-    console.log(`err: ${err && err.message}, result: ${result}`)
+    //console.log(`err: ${err && err.message}, result: ${result}`)
     onDone(err, result)
   })
   worker.on('exit', code =>{
