@@ -4,9 +4,14 @@
   "description": "securely run untrusted JS functions in an isolated quickjs runtime inside a worker thread",
   "main": "index.js",
   "scripts": {
-    "test": "tape test/**"
+    "test": "tape test/**",
+    "prepare": "browserify -u debug -u worker_threads --node thread.js > _thread_bundled.js"
   },
-  "keywords": ["sandbox", "quickjs", "isolate" ],
+  "keywords": [
+    "sandbox",
+    "quickjs",
+    "isolate"
+  ],
   "author": "Jan Bölsche <jan@lagomorph.de> (https://regular.codes/)",
   "license": "MIT",
   "dependencies": {
@@ -14,6 +19,7 @@
     "quickjs-emscripten": "^0.2.0"
   },
   "devDependencies": {
+    "browserify": "^16.5.1",
     "tape": "^5.0.0"
   },
   "directories": {

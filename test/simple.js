@@ -18,6 +18,7 @@ test('Can call function', t=>{
   `)
   
   task('[5, 6]', (err, result) =>{
+    console.log(err)
     t.error(err)
     t.equal(result, '21')
 
