@@ -33,6 +33,8 @@ task('[5, 6]', (err, result) =>{
 })
 ```
 
+WOrks in Electron (testec with Electron 8.2.3)
+
 ### Why passing arguments as JSON strings?
 
 The arguments have to be serialized to be sent to the worker. In cases where your input data already is JSON, we save a redundant JSON.stringify()/JSON.parse() rondtrip this way.
