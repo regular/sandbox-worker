@@ -1,6 +1,6 @@
 {
   "name": "sandbox-worker",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "securely run untrusted JS functions in an isolated quickjs runtime inside a worker thread",
   "main": "index.js",
   "scripts": {
