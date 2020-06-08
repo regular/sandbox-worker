@@ -2,3 +2,5 @@ node_modules
 package-lock.json
 .tre
 .trerc
+_thread_bundled.js
+
