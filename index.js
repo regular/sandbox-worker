@@ -9,6 +9,7 @@ module.exports = function (opts, cb) {
     opts = {}
   }
   if (!opts) opts = {}
+  let ended = null
   const worker = makeWorker(opts, onDone, onEnd)
 
   const pending = []
@@ -19,6 +20,7 @@ module.exports = function (opts, cb) {
   }
 
   function onEnd(err) {
+    ended = err == true ? new Error('worker is no longer running') : new Error(`worker exited with error ${err.message}`)
     debug(`onEnd ${err}`)
     while(pending.length) onDone(err)
     if (err == true) {
@@ -30,24 +32,29 @@ module.exports = function (opts, cb) {
   }
 
   function call(index, args, cb) {
+    if (ended) return cb(ended)
+    // the debug statement has been identified as responsile for a crash on shutdown
     debug(`sending call ${index}, args: ${args}`)
     pending.push(cb)
     worker.postMessage({verb: 'call', index, args})
   }
 
   function addTask(code, cb) {
+    if (ended) return cb(ended)
     debug('sending addTask')
     pending.push(cb)
     worker.postMessage({verb: 'addTask', code})
   }
 
   function removeTask(index, cb) {
+    if (ended) return cb(ended)
     debug(`sending removeTask ${index}`)
     pending.push(cb)
     worker.postMessage({verb: 'removeTask', index})
   }
 
   function end(cb) {
+    if (ended) return cb(ended)
     debug('sending end')
     pending.push(cb)
     worker.postMessage({verb: 'end'})
@@ -93,10 +100,6 @@ module.exports = function (opts, cb) {
 }
 
 // -- util
-
-function toJSON(vm, handle) {
-  return vm.ffi.QTS_Dump(vm.ctx.value, handle.value) 
-}
 
 function makeWorker(opts, onDone, onEnd) {
   const code = fs.readFileSync(join(__dirname, '_thread_bundled.js'), 'utf8')

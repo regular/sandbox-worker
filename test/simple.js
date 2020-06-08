@@ -104,3 +104,29 @@ test('Syntax error in args are handled gracefully', t=>{
     })
   })
 })
+
+test.only('call() after end() errors', t=>{
+  t.plan(3)
+
+  const {addTask, end} = sandboxWorker(onEnd)
+
+  const task = addTask(`
+    const c = 10
+    module.exports = function ([a, b]) {
+      return a + b + c
+    }
+  `)
+
+  function onEnd(err) {
+    t.true(err)
+    task('[5, 6]', (err, result) =>{
+      console.log(err)
+      t.ok(err)
+    })
+  }
+
+  end( err=>{
+    t.true(err)
+  })
+  
+})
