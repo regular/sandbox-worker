@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "tape test/**",
-    "prepare": "browserify -u debug -u worker_threads --node thread.js > _thread_bundled.js"
+    "prepare": "browserify -u worker_threads --node thread.js > _thread_bundled.js"
   },
   "keywords": [
     "sandbox",
