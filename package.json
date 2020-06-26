@@ -4,7 +4,7 @@
   "description": "securely run untrusted JS functions in an isolated quickjs runtime inside a worker thread",
   "main": "index.js",
   "scripts": {
-    "test": "tape test/**",
+    "test": "tape test/*.js",
     "prepare": "browserify -u worker_threads --node thread.js > _thread_bundled.js"
   },
   "keywords": [

@@ -22,13 +22,13 @@ module.exports = function (opts, cb) {
   function onEnd(err) {
     ended = err == true ? new Error('worker is no longer running') : new Error(`worker exited with error ${err.message}`)
     debug(`onEnd ${err}`)
-    while(pending.length) onDone(err)
     if (err == true) {
       //console.log('worker ended')
     } else {
       console.error(`worker ended, err: ${JSON.stringify(err.message)}`)
     }
     cb(err)
+    while(pending.length) onDone(err)
   }
 
   function call(index, args, cb) {
@@ -56,7 +56,8 @@ module.exports = function (opts, cb) {
   function end(cb) {
     if (ended) return cb(ended)
     debug('sending end')
-    pending.push(cb)
+    pending.push(()=>{debug('end receipt')})
+    pending.push(cb) // will be called when onEnd flushes all pending cbs
     worker.postMessage({verb: 'end'})
   }
   
@@ -121,7 +122,7 @@ function makeWorker(opts, onDone, onEnd) {
   })
   worker.on('exit', code =>{
     if (_err) return
-    console.log(`exit: ${code}`)
+    debug(`worker exit: ${code}`)
     onEnd(true, code)
   })
   return worker

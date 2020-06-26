@@ -105,7 +105,7 @@ test('Syntax error in args are handled gracefully', t=>{
   })
 })
 
-test.only('call() after end() errors', t=>{
+test('call() after end() errors', t=>{
   t.plan(3)
 
   const {addTask, end} = sandboxWorker(onEnd)
